@@ -1,0 +1,120 @@
+{% extends 'goods/goods_base.html' %}
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/css/jquery.pagination.css">
+    <script type="text/javascript" src="/static/js/jquery.pagination.min.js"></script>
+    <style>
+        .box{
+            width: 800px;
+            margin: 100px auto;
+            height: 34px;
+        }
+        .page{
+            width: 600px;
+            height: 32px;
+            text-align: center;
+            font-size: 0;
+            margin: 30px auto;
+        }
+    </style>
+    <script>
+        function addGoods(obj,goods_id){
+            var data = {
+                'goods_id': goods_id,
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+            };
+            $.post('/cart/add_goods/',data,function (xhr) {
+                if(xhr.code == 200){
+                    var $add_x = $(obj).offset().top;
+                    var $add_y = $(obj).offset().left;
+                    var $to_x = $('#show_count').offset().top;
+                    var $to_y = $('#show_count').offset().left;
+                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+                    $(".add_jump").stop().animate({
+                            'left': $to_y+7,
+                            'top': $to_x+7
+                        },
+                        "slow", function() {
+                            $(".add_jump").fadeOut('slow',function(){
+                                $('#show_count').html(xhr.cart_num);
+                            });
+			            });
+                }else{
+                    alert(xhr.msg + '<br/>请您刷新页面重试');
+                }
+            })
+        }
+    </script>
+{% endblock head %}
+{% block content %}
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+                    {% for new in new_goods %}
+                        <li>
+                            <a href="#"><img src="/static/{{ new.image }}"></a>
+                            <h4><a href="#">{{ new.name }}</a></h4>
+                            <div class="prize">￥{{ new.price }}</div>
+					    </li>
+                    {% endfor %}
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<div class="sort_bar">
+				<a
+                        {% if orderby == '-id' %} href="javascript:void(0)" class="active"
+                            {% else %}href="/category{{ now_cate.id }}_goods_1/?orderby=-id"
+                        {% endif %}>默认
+                </a>
+				<a
+                        {% if orderby == '-price' %} href="javascript:void(0)" class="active"
+                            {% else %}href="/category{{ now_cate.id }}_goods_1/?orderby=-price"
+                        {% endif %}>价格
+                </a>
+				<a
+                        {% if orderby == '-click' %} href="javascript:void(0)" class="active"
+                            {% else %}href="/category{{ now_cate.id }}_goods_1/?orderby=-click"
+                        {% endif %}>人气
+                </a>
+			</div>
+
+			<ul class="goods_type_list clearfix">
+                {% for goods in goods_list %}
+                    <li>
+                        <a href="/detail_{{ goods.id }}"><img src="/static/{{ goods.image }}"></a>
+                        <h4><a href="/detail_{{ goods.id }}">{{ goods.name }}</a></h4>
+                        <div class="operate">
+                            <span class="prize">￥{{ goods.price }}</span>
+                            <span class="unit">{{ goods.price }}/{{ goods.unit }}</span>
+                            <a href="javascript:void(0)" class="add_goods" onclick="addGoods(this,{{ goods.id }})" title="加入购物车"></a>
+                        </div>
+				    </li>
+                {% endfor %}
+            {% csrf_token %}
+			</ul>
+            <div class="box">
+			    <div id="pagination" class="page"></div>
+	        </div>
+            <script>
+                $('#pagination').pagination({
+                   currentPage: {{ goods_list.number }},//当前页
+                   totalPage: {{ goods_list.paginator.num_pages }}, //总页数
+                   isShow: false,
+                   count: 5,
+                   prevPageText: '< 上一页',
+                   nextPageText: '下一页 >',
+                   callback:function (current) {
+                       window.location.href='/category{{ now_cate.id }}_goods_'+current+'/?orderby={{ orderby }}';
+                   } 
+                });
+            </script>
+		</div>
+	</div>
+{% endblock content %}
+{% block footer %}
+    <div class="add_jump"></div>
+{% endblock footer %}
+

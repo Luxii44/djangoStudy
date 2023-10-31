@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block head %}
+    <script>
+        //删除商品
+        function is_del_address(address_id){
+            if (confirm('确认要删除这个收货地址吗？')){
+                    $.get('/user/del_address/'+address_id,{},function (xhr) {
+                        if (xhr.code){
+                            $('#address_id_'+address_id).remove();
+                        }
+                    });
+                }
+                return false;
+        }
+
+        //设置默认地址
+        function set_default_address(address_id){
+            $.get('/user/set_default_address/'+address_id,{},function (xhr) {
+                if (xhr.code == 200){
+                    if(xhr.undefault_address_id > 0){
+                        $('#address_checkbox_'+xhr.undefault_address_id).attr('checked',false);
+                    }
+                }
+            });
+        }
+    </script>
+{% endblock head %}
+{% block middle %}
+	<div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="user_center_info.html">· 个人信息</a></li>
+				<li><a href="user_center_order.html">· 全部订单</a></li>
+				<li><a href="user_center_site.html" class="active">· 收货地址</a></li>
+			</ul>
+		</div>
+		<div class="right_content clearfix">
+			<h3 class="common_title2">收货地址  <a href="/user/add_address/" style="vertical-align:middle">[添加地址]</a></h3>
+            {% for address in address_list %}
+                <div class="site_con" id="address_id_{{ address.id }}">
+                    <dl>
+                        <dd><span>收货人 ：</span><span>{{ address.realname }}({{ address.phone }})</span></dd>
+                        <dd><span>收货地区 ：</span><span>{{ address.area }}</span></dd>
+                        <dd><span>详细地址 ：</span><span>{{ address.address }}</span></dd>
+                        <dd>
+                            <div>
+                                <input type="checkbox" id="address_checkbox_{{ address.id }}" onclick="set_default_address({{ address.id }})" {% if address.is_default %}checked="checked"{% endif %} style="vertical-align:middle;" />
+                                <span style="vertical-align:middle;" >默认地址</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                                <a href="/user/edit_address/{{ address.id }}" style="vertical-align:middle;" >编辑</a>&nbsp;&nbsp;&nbsp;
+                                <a href="#" onclick="return is_del_address({{ address.id }})" style="vertical-align:middle;" >删除</a>
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+            {% endfor %}
+		</div>
+	</div>
+{% endblock middle %}

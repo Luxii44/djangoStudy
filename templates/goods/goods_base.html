@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block middle %}
+    <div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>
+				<span></span>
+				<ul class="subnav">
+                    {% for cate in cates %}
+                        <li><a href="/category{{ cate.id }}_goods_1/" class="cate{{ forloop.counter }}">{{ cate.name }}</a></li>
+                    {% endfor %}
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+    {% if not is_detail %}
+        {% if not is_search %}
+            {#分类列表导航#}
+            <div class="breadcrumb">
+                <a href="/">首页</a>
+                <span>></span>
+                <a href="javascript:void(0)">{{ now_cate.name }}</a>
+            </div>
+        {% else %}
+            {#搜索页导航#}
+            <div class="breadcrumb">
+                <a href="/">首页</a>
+                <span>></span>
+                <a href="javascript:void(0)">{{ title }}</a>
+            </div>
+        {% endif %}
+    {% else %}
+        {#商品详情导航#}
+        <div class="breadcrumb">
+		    <a href="/">首页</a>
+		    <span>></span>
+		    <a href="/category{{ now_cate.id }}_goods_1/">{{ now_cate.name }}</a>
+		    <span>></span>
+		    <a href="javascript:void(0)">{{ goods.name }}</a>
+	    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+{% endblock %}

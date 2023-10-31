@@ -1,0 +1,4 @@
+# 指定索引的属性
+{{object.details}}
+{{object.name}}
+{{object.sub_name}}

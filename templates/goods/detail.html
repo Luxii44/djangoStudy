@@ -1,0 +1,128 @@
+{% extends 'goods/goods_base.html' %}
+{% block head %}
+    <script>
+        $(function () {
+            //点击增加购买数量
+            $('#inc_num').click(function () {
+                var goods_num = parseInt($('#goods_num').val()) + 1;
+                if(goods_num >= {{ goods.store }})
+                    goods_num = {{ goods.store }}
+                $('#goods_num').val(goods_num);
+                $('#goods_num').blur();
+            });
+            //点击减少购买数量
+            $('#dec_num').click(function () {
+                var goods_num = parseInt($('#goods_num').val()) - 1;
+                if(goods_num <= 1)
+                    goods_num = 1
+                $('#goods_num').val(goods_num);
+                $('#goods_num').blur();
+            });
+            //校验商品数量
+            $('#goods_num').blur(function () {
+                 var goods_num = parseInt($('#goods_num').val());
+                 if (goods_num <= 1)
+                     goods_num = 1
+                 if(goods_num >= {{ goods.store }})
+                     goods_num = {{ goods.store }}
+                 $('#goods_num').val(goods_num)
+                //修改总价
+                total_price = goods_num * {{ goods.price }};
+                $('#total_price').text(total_price.toFixed(2)+'元');
+            });
+        });
+    </script>
+{% endblock head %}
+{% block content %}
+	<div class="goods_detail_con clearfix">
+		<div class="goods_detail_pic fl"><img src="/static/{{ goods.image }}"></div>
+		<div class="goods_detail_list fr">
+			<h3>{{ goods.name }}</h3>
+			<input type="hidden" name="goods_id" id="goods_id" value="{{ goods.id }}">
+			<p>{{ goods.sub_name }}</p>
+			<div class="prize_bar">
+				<span class="show_pirze">¥<em>{{ goods.price }}</em></span>
+				<span class="show_unit">单  位：{{ goods.unit }}</span>
+			</div>
+			<div class="goods_num clearfix">
+				<div class="num_name fl">数 量：</div>
+				<div class="num_add fl">
+					<input type="number" id="goods_num" max="{{ goods.store }}" class="num_show fl" value="1">
+					<a href="javascript:;" id="inc_num" class="add fr">+</a>
+					<a href="javascript:;" id="dec_num" class="minus fr">-</a>
+				</div> 
+			</div>
+			<div class="total">总价：<em id="total_price">{{ goods.price }}元</em></div>
+			<div class="operate_btn">
+                {% csrf_token %}
+				<a href="javascript:;" class="buy_btn">立即购买</a>
+				<a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>				
+			</div>
+		</div>
+	</div>
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+                    {% for new in new_goods %}
+                        <li>
+						    <a href="/detail_{{ new.id }}"><img src="/static/{{ new.image }}"></a>
+						    <h4><a href="/detail_{{ new.id }}">{{ new.name }}</a></h4>
+						    <div class="prize">￥{{ new.price }}</div>
+					    </li>
+                    {% endfor %}
+				</ul>
+			</div>
+		</div>
+		<div class="r_wrap fr clearfix">
+			<ul class="detail_tab clearfix">
+				<li class="active">商品介绍</li>
+				<li>评论</li>
+			</ul>
+
+			<div class="tab_content">
+				<dl>
+					<dt>商品详情：</dt>
+					<dd> {{ goods.details|safe }}</dd>
+				</dl>
+			</div>
+		</div>
+	</div>
+{% endblock content %}
+{% block footer %}
+	<div class="add_jump"></div>
+	<script type="text/javascript">
+
+		$('#add_cart').click(function(){
+
+		    //提交添加购物车请求
+            var data = {
+                'goods_id': $('#goods_id').val(),
+                'goods_num': $('#goods_num').val(),
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+            };
+            $.post('/cart/add_goods/',data,function (xhr) {
+                if(xhr.code == 200){
+                    var $add_x = $('#add_cart').offset().top;
+                    var $add_y = $('#add_cart').offset().left;
+                    var $to_x = $('#show_count').offset().top;
+                    var $to_y = $('#show_count').offset().left;
+                    $(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+                    $(".add_jump").stop().animate({
+                            'left': $to_y+7,
+                            'top': $to_x+7
+                        },
+                        "slow", function() {
+                            $(".add_jump").fadeOut('slow',function(){
+                                $('#show_count').html(xhr.cart_num);
+                            });
+			            });
+                }else{
+                    alert(xhr.msg + '<br/>请您刷新页面重试');
+                }
+            });
+
+		})
+	</script>
+{% endblock footer %}

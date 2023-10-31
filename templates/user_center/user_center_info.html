@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block head %}
+    <script>
+    function del_view_goods(goods_id){
+        if(confirm('是否要删除浏览记录？')){
+            var data = {
+                'goods_id': goods_id,
+                'csrfmiddlewaretoken':$('input[name="csrfmiddlewaretoken"]').val()
+            }
+            $.post('/user/del_view_goods/',data,function (xhr) {
+                if(xhr.code == 200){
+                    location.reload()
+                }else{
+                    alert(xhr.msg);
+                }
+            })
+        }
+    }
+    </script>
+{% endblock head %}
+{% block middle %}
+    {% csrf_token %}
+	<div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="user_center_info.html" class="active">· 个人信息</a></li>
+				<li><a href="/user/order/">· 全部订单</a></li>
+				<li><a href="/user/address/">· 收货地址</a></li>
+			</ul>
+		</div>
+		<div class="right_content clearfix">
+				<div class="info_con clearfix">
+				<h3 class="common_title2">基本信息</h3>
+						<ul class="user_info_list">
+							<li><span>用户名：</span>{{ user.username }}</li>
+							<li><span>联系邮箱：</span>{{ user.email }}</li>
+							<li><span>注册时间：</span>{{ user.reg_time }}</li>
+						</ul>
+				</div>
+				
+				<h3 class="common_title2">最近浏览<span onclick="del_view_goods(0)" style="margin-left: 800px;color: red">清空浏览记录</span></h3>
+				<div class="has_view_list">
+					<ul class="goods_type_list clearfix">
+                        {% for view_good in view_goods %}
+                             <li>
+                                <a href="/detail_{{ view_good.id }}"><img src="/static/{{ view_good.image }}"></a>
+                                <h4><a href="/detail_{{ view_good.id }}">{{ view_good.name }}</a></h4>
+                                <div class="operate">
+                                    <span class="prize">￥{{ view_good.price }}</span>
+                                    <span class="unit">{{ view_good.price }}/{{ view_good.unit }}</span>
+                                    <a href="#" class="add_goods" title="加入购物车"></a>
+                                    <p onclick="del_view_goods({{ view_good.id }})" style="text-align: center;color: red">删除</p>
+                                </div>
+                            </li>
+                            {% empty %}
+                            <p style="color: red;text-align: center;font-size: 25px;">没有最近浏览</p>
+                        {% endfor %}
+			</ul>
+		</div>
+		</div>
+	</div>
+{% endblock middle %}

@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block head %}
+    <script>
+    $(function () {
+        // 用户输入信息校验
+        // 真实姓名
+        // 详细地址
+        var realname_error = false;
+        var detail_error = false;
+        var phone_error = false;
+
+        $('#realname').blur(function () {
+            val = $(this).val();
+            if (val.length == 0) {
+                realname_error = true;
+                $('#realname_error').text('请填写真实姓名').show();
+            } else {
+                realname_error = false;
+                $('#realname_error').text('').hide();
+            }
+        });
+
+        $('#detail').blur(function () {
+            val = $(this).val();
+            if (val.length == 0) {
+                detail_error = true;
+                $('#detail_error').text('请填写详细地址').show();
+            } else {
+                detail_error = false;
+                $('#detail_error').text('').hide();
+            }
+        });
+
+        // 手机号码校验
+        $('#phone').blur(function () {
+            var val = $(this).val();
+            var pattern = /^(((13[0-9]{1})|(14[0-9]{1})|(17[0]{1})|(15[0-3]{1})|(15[5-9]{1})|(18[0-9]{1}))+\d{8})$/;
+            // 正则表达式匹配
+            if (!pattern.test(val)) {
+                // 没有通过
+                phone_error = true;
+                $('#phone_error').text('请填写真实的电话号码').show();
+            } else {
+                phone_error = false;
+                $('#phone_error').text('').hide();
+            }
+        });
+
+        // 提交数据
+        $('form').submit(function () {
+            $('#realname').blur();
+            $('#detail').blur();
+            $('#phone').blur();
+
+            var province = $('#province').val();
+            var city = $('#city').val();
+            var area = $('#district').val();
+
+            var area_error = (province == -1 && city == -1 && area == -1)
+            if (realname_error || detail_error || phone_error || area_error){
+                alert('请正确填写表单信息');
+                return false;
+            }
+        });
+    });
+        //ajax获取城市列表
+        function getCity(province) {
+            var province_id = $(province).val();
+            if(province_id == 710000 || province_id == 810000  || province_id == 820000 || province_id == -1){
+                if(province_id != -1){
+                    $('#city').hide();
+                    $('#district').hide();
+                }
+                return false;
+            }else{
+                $('#city').show();
+                $('#district').show();
+            }
+            var url = '/user/get_address_city/';
+            var data = {
+                'province_id': province_id,
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val(),
+            };
+            $.get(url,data,function (xhr) {
+                var city_obj = $('#city');
+                $("#city option").remove();
+                city_obj.append("<option value='-1'>-- 请选择城市 --</option>");
+                $("#district option").remove();
+                $("#district").append("<option value='-1'>-- 请选择县区 --</option>");
+                $.each(xhr.city_list, function (i,item) {
+                    city_obj.append("<option value='"+item.city_id+"'>"+item.name+"</option>");
+                });
+            });
+        }
+         //ajax获取县区列表
+        function getDistrict(city) {
+            var city_id = $(city).val();
+            if(city_id == -1){
+                return false;
+            }
+            var url = '/user/get_address_district/';
+            var data = {
+                'city_id': city_id,
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val(),
+            };
+            $.get(url,data,function (xhr) {
+                var district_obj = $('#district');
+                $("#district option").remove();
+                district_obj.append("<option value='-1'>-- 请选择县区 --</option>");
+                $.each(xhr.district_list, function (i,item) {
+                    district_obj.append("<option value='"+item.district_id+"'>"+item.name+"</option>");
+                });
+            });
+        }
+    </script>
+{% endblock %}
+{% block middle %}
+	    <div class="main_con clearfix">
+        <div class="left_menu_con clearfix">
+            <h3>用户中心</h3>
+            <ul>
+                <li><a href="/user/address/">· 个人信息</a></li>
+                <li><a href="user_center_order.html">· 全部订单</a></li>
+                <li><a href="#" class="active">· 收货地址</a></li>
+            </ul>
+        </div>
+        <div class="right_content clearfix">
+            <h3 class="common_title2">编辑地址</h3>
+            <div class="site_con">
+                <form method="post" action="/user/add_address/">
+                    {% csrf_token %}
+                    <div class="form_group">
+                        <label>收件人：</label>
+                        <input type="text" id="realname" name="realname" placeholder="请输入真实姓名" value="{{ address_info.realname }}">
+                        <div id="realname_error" hidden="hidden" style="color:red;margin-left: 50px;">输入错误</div>
+                    </div>
+                    <div class="form_group">
+                        <label>地址：</label>
+                        <select id="province" name="province" onchange="getCity(this)">
+                            <option value="-1">-- 请选择省 --</option>
+                            {% for p in province %}
+                                <option value="{{ p.province_id }}" {% if address_info.province_id == p.province_id %}selected="selected"{% endif %}> {{ p.name }} </option>
+                            {% endfor %}
+                        </select>&nbsp;
+                        <select id="city" name="city" onchange="getDistrict(this)">
+                            <option value="-1">-- 请选择城市 --</option>
+                            {% for c in city %}
+                                <option value="{{ c.city_id }}" {% if address_info.city_id == c.city_id %}selected="selected"{% endif %}> {{ c.name }} </option>
+                            {% endfor %}
+                        </select>&nbsp;
+                        <select id="district" name="district">
+                            <option value="-1">-- 请选择县区 --</option>
+                            {% for d in district %}
+                                <option value="{{ d.district_id }}" {% if address_info.district_id == d.district_id %}selected="selected"{% endif %}> {{ d.name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form_group form_group2">
+                        <label>详细地址：</label>
+                        <textarea class="site_area" id="detail" name="detail">{{ address_info.address }}</textarea>
+                        <div id="detail_error" hidden="hidden" style="color:red;margin-left: 100px;">输入错误</div>
+                    </div>
+
+                    <div class="form_group">
+                        <label>手机：</label>
+                        <input type="text" id="phone" name="phone" value="{{ address_info.phone }}">
+                        <div id="phone_error" hidden="hidden" style="color:red;">输入错误</div>
+                    </div>
+                    <input type="hidden"  value="{{ address_info.id }}" name="address_id" id="address_id">
+                    <input type="submit"  value="提交" class="info_submit">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock middle %}
+

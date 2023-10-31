@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>天天生鲜‐{{ title }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    <script type="text/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
+    {% block head %} {% endblock head %}
+</head>
+<body>
+{% if not hide_header %}
+    <div class="header_con">
+		<div class="header">
+			<div class="welcome fl">欢迎来到天天生鲜!</div>
+			<div class="fr">
+                {% if request.session.uid %}
+                    <div class="login_info fl">
+                        欢迎您：<a href="/user/"><em>{{ request.session.username }}</em></a>
+                    </div>
+                    <div class="user_link fl">
+                        <span>|</span>
+                        <a href="/user/">用户中心</a>
+                        <span>|</span>
+                        <a href="/cart/">我的购物车</a>
+                        <span>|</span>
+                        <a href="/cart/">我的订单</a>
+                        <span>|</span>
+                        <a href="/user/logout">退出</a>
+                    </div>
+                {% else %}
+                    <div class="login_btn fl">
+                        <a id="login" href="">登录</a>
+                        <span>|</span>
+                        <a href="/user/register/">注册</a>
+                    </div>
+                    <script>
+                    $(function () {
+                           var url = document.location.toString();
+                    　　　　var arrUrl = url.split("//");
+                    　　　　var start = arrUrl[1].indexOf("/");
+                    　　　　var relUrl = arrUrl[1].substring(start);//stop省略，截取从start开始到结尾的所有字符
+                    　　　　if(relUrl.indexOf("?") != -1){
+                    　　　　　　relUrl = relUrl.split("?")[0];
+                    　　　　}　　　
+                    　　　　var arrUrl = url.split("?");
+                    　　　　var para = arrUrl[1];
+                    　　　　if(para != undefined){
+                                var from = relUrl + '/?' + para;
+                            }else{
+                                var from = relUrl ;
+                            }
+                            var from_url = '/user/login/?from='+ from;
+                            $('#login').attr('href', from_url);　
+                    });　　　　　　　　
+                    </script>
+                {% endif %}
+
+			</div>
+		</div>
+    </div>
+    {% if not is_goods %}
+        <div class="search_bar clearfix">
+            <a href="index.html" class="logo fl"><img src="/static/images/logo.png"></a>
+            <div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;{{ app_name }}</div>
+            <div class="search_con fr">
+                <form action="/search/" method="get" target="_blank">
+                    <input type="text" class="input_text fl" name="q" placeholder="搜索商品">
+                    <input type="button" class="input_btn fr" name="" value="搜索">
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="search_bar clearfix">
+                <a href="index.html" class="logo fl"><img src="/static/images/logo.png"></a>
+                <div class="search_con fl">
+                    <form action="/search/" method="get" target="_blank">
+                        <input type="text" class="input_text fl" name="q" placeholder="搜索商品">
+                        <input type="submit" class="input_btn fr" name="" value="搜索">
+                    </form>
+                </div>
+
+                <div class="guest_cart fr">
+                    <a href="/cart/" class="cart_name fl">我的购物车</a>
+                    <div class="goods_count fl" id="show_count">0</div>
+                    {% if request.session.uid %}
+                        <script>
+                            {# 购物车购物项数量 #}
+                            $(function () {
+                                $.get('/cart/count/',function (data) {
+                                    $('#show_count').html(data.num);
+                                })
+                            })
+                        </script>
+                     {% endif %}
+                </div>
+        </div>
+    {% endif %}
+{% endif %}
+
+<!‐‐ 效果图中界面的上部还有一部分公用内容 ‐‐>
+{% block middle %} {% endblock middle %}
+<div class="footer no‐mp">
+<div class="foot_link">
+<a href="#">关于我们</a>
+<span>|</span>
+<a href="#">联系我们</a>
+<span>|</span>
+<a href="#">招聘人才</a>
+<span>|</span>
+<a href="#">友情链接</a>
+</div>
+<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+<p>电话：010‐****888 京ICP备*******8号</p>
+</div>
+{% block footer %}{% endblock footer %}
+</body>
+</html>
